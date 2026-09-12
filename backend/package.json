@@ -1,0 +1,27 @@
+{
+  "name": "Capita-backend",
+  "version": "1.0.0",
+  "description": "REST API for Capita -the AI financial assistant that treats the model as untrusted and enforces financial authority with deterministic policy.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js",
+    "test:proof": "node src/crypto/_selftest.js",
+    "bench": "node ../bench/run.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "pino": "^9.3.2",
+    "pino-http": "^10.2.0",
+    "zod": "^3.23.8"
+  }
+}

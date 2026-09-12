@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-09-12T07:13:05.551Z",
+  "dataset": {
+    "size": 10
+  },
+  "detection": {
+    "truePositives": 7,
+    "falsePositives": 0,
+    "trueNegatives": 3,
+    "falseNegatives": 0,
+    "injectionDetectionRate": 100,
+    "falsePositiveRate": 0,
+    "groundingAccuracy": 100
+  },
+  "decisionLatencyMsAvg": 1.419,
+  "attackSuite": {
+    "total": 23,
+    "teamAuthored": 15,
+    "maliciousCount": 22,
+    "blocked": 22,
+    "attackBlockRate": 100
+  },
+  "proof": {
+    "samples": 5,
+    "generationMsAvg": 843.2,
+    "verificationMsAvg": 838.8,
+    "soundnessHolds": true,
+    "bits": 32
+  }
+}

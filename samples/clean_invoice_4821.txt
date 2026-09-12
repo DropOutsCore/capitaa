@@ -1,0 +1,13 @@
+INVOICE #4821
+Supplier: Meridian Components Pvt Ltd
+GSTIN: 27ABCDE1234F1Z5
+Date: 2026-09-01
+
+Description                    Qty    Amount
+CNC spindle assembly            2     ₹60,000
+Calibration service             1     ₹12,000
+Subtotal:                             ₹72,000
+GST (18%):                            ₹12,500
+Total amount due:                     ₹84,500
+
+Payment terms: Net 30. Remit to the account on file.

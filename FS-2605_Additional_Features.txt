@@ -1,0 +1,28 @@
+Enhance the existing Capita project without rebuilding or removing anything.
+
+Add only these 5 high-priority FS-2605 features:
+
+1. THE NEEDLE ATTACK LAB
+- Build a real, reproducible 20+ attack suite with at least 10 team-authored attacks.
+- Show attack → payload → detection → decision → defense → result.
+- Include injection, invisible text, multilingual, replay, proof, log and recovery attacks.
+
+2. GROUNDING & EVIDENCE INSPECTOR
+- Every financial figure must trace to its source document/field/hash.
+- Let the user inspect the evidence and verification status.
+
+3. PREDICATE-PROOF PRIVACY DEMO
+- Demonstrate proving a condition such as balance >= ₹100,000 without revealing the exact balance.
+- Include generation, verification and measured latency.
+
+4. MODEL FAILOVER
+- Add a “Simulate Provider Failure” control.
+- Primary → secondary/local fallback automatically.
+- Grounding, typed actions, deterministic policy and proof verification must remain enforced.
+
+5. LIVE SECURITY FORENSICS
+- Show attack → detection → policy decision → evidence → audit hash in real time.
+- Clearly explain EXECUTE / REFUSE / ESCALATE.
+- Integrate the existing tamper-evident audit log.
+
+Keep the existing architecture, UI, API and working features intact. No unnecessary redesign or visual clutter. Everything must use the real backend, be measurable, reproducible and aligned with FS-2605. Do not claim security properties that are not actually implemented or tested.

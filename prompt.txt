@@ -1,0 +1,47 @@
+Build a premium, production-grade single-page website for an AI-powered financial assistant product (fintech/security focus). This needs to feel like a $50M-funded startup's landing page, not a hackathon project.
+
+Visual language:
+
+macOS-style glassmorphism throughout -frosted glass panels (backdrop-filter: blur()), subtle translucency, soft inner borders (1px, low-opacity white), gentle drop shadows that feel like elevation, not harsh box-shadows
+Dark mode base (near-black, 
+#0a0a0f range) with one accent color used sparingly and deliberately -not rainbow gradients everywhere
+Typography: one display font for headlines (bold, tight tracking), one clean sans for body -no more than 2 font families total
+Generous whitespace -nothing cramped, let elements breathe
+
+Motion & interaction:
+
+Scroll-driven parallax: background layers move slower than foreground content as user scrolls
+Section transitions that reveal on scroll (fade + slight upward translate, staggered for grouped elements) -using Intersection Observer, not just CSS animation-on-load
+A subtle 3D element in the hero section -could be a rotating abstract shape (Three.js), or a tilting glass card that responds to mouse position (perspective transform following cursor)
+Buttons: glass-morphic with a soft glow on hover, subtle scale (1.02x) and shadow lift on hover, satisfying press-down state on click -no jarring color-swap hovers
+Navbar: floating, glass, condenses/shrinks slightly on scroll, smooth backdrop blur increase as user scrolls past hero
+Everything should feel like it has physics -easing curves should be custom (cubic-bezier), never linear or default ease
+
+Structure (sections):
+
+Hero -product name, one-line value prop, 3D visual, primary CTA
+Problem statement -the prompt-injection/AI-security problem in plain language, one striking stat
+How it works -3-4 step visual flow (typed action layer → grounding check → refusal policy → tamper-evident log), each as its own glass card revealing on scroll
+Live demo embed or screen recording section
+Security/trust section -"attacks we defend against" as a visual grid, since this is a security product
+Architecture diagram -clean, custom-styled, not a screenshotted whiteboard
+Footer with team/repo/contact
+
+Technical requirements:
+
+Frontend: React + Tailwind, Framer Motion for scroll/interaction animations, Three.js (react-three-fiber) only for the one hero visual -don't overuse 3D, it should be a moment, not everywhere
+Fully responsive -mobile gets a simplified version of parallax (reduce motion, don't kill performance)
+Lighthouse performance score above 90 -glass effects and blur are expensive, so use them sparingly and test on mid-range hardware
+Respect prefers-reduced-motion -disable heavy animation for users who request it
+
+Backend requirements:
+
+RESTful API (Node/Express or FastAPI) with clean route structure -this should genuinely serve the demo, not just fake JSON
+Endpoints needed: submit a "document" (invoice/email text) for the assistant to process, return the assistant's decision (execute/refuse/escalate) with reasoning, fetch the tamper-evident action log, health check (/healthz), metrics (/metrics) with at least 3 domain-specific counters (e.g. requests processed, refusals triggered, injection attempts caught)
+Include request validation, rate limiting, and structured logging from the start -not bolted on later
+Include a seed script that populates realistic demo data in under 60 seconds
+Document the 3-command setup in the README: clone → install → run, working end to end
+
+What NOT to do:
+
+No generic Bootstrap-looking components

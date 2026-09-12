@@ -142,6 +142,27 @@ Routing fails over **Gemini (primary) → Claude (secondary) → local heuristic
 
 **LLM setup:** copy `backend/.env.example` → `backend/.env` and add `GEMINI_API_KEY` / `ANTHROPIC_API_KEY`. With no keys (or unreachable providers) the system uses the local heuristic proposer and still works — the decision layer never depends on the LLM. `backend/.env` is gitignored; never commit real keys.
 
+### Audit log — HMAC hash chain + truncation detection
+
+The tamper-evident audit log is an **HMAC-SHA256 hash chain** (`backend/src/auditLog.js`). Each event stores `eventId, timestamp, actor, action, payloadHash, prevHash, hmac`, and each HMAC covers the *previous* entry's HMAC — so editing, inserting, or reordering any entry cascades a BROKEN/INVALID status to every entry after it.
+
+**Truncation detection.** Deleting the *newest* entry can't be caught by the chain alone — the surviving entries are still internally consistent. To close that gap, every commit also appends a line to a **separate, append-only checkpoint file** (`backend/src/checkpoint.js`, written with `flag: 'a'` only) recording the running entry count and latest HMAC. `verifyAgainstCheckpoint()` cross-references the live log against the checkpoint's last line; if the log has fewer entries (or a mismatched latest HMAC), it flags `TRUNCATION_DETECTED`. The UI shows this as a distinct "ENTRY COUNT MISMATCH" banner, separate from "HASH CHAIN BROKEN".
+
+- `GET /api/log` returns `integrity` (chain) + `truncationCheck` (checkpoint).
+- Demo buttons: **Simulate tampering** (edits an entry → chain breaks), **Simulate truncation** (deletes the last entry → chain stays VALID but the checkpoint catches it), **Reset chain**.
+- Tests: `npm run test:audit` (from `/backend`) — proves cascade on edit, and that truncation the chain misses is caught by the checkpoint, and that the checkpoint is never opened in write mode on the write path.
+
+**Append-only hardening (honest status):** the checkpoint is opened only in append mode in code. On Linux you can additionally run `chattr +a backend/data/audit_checkpoint.log` so the filesystem itself forbids rewrites (requires root to unset). This was **not** applied in our dev environment (Windows), and we don't claim it.
+
+> **Where this breaks (declared weakness):** truncation of the most recent entry
+> is caught by cross-referencing an append-only external checkpoint against the
+> live entry count. This checkpoint is stronger than the hash chain alone but is
+> not itself cryptographically tamper-proof — an attacker with write access to
+> *both* the primary log *and* the checkpoint file, on the same host, could
+> still defeat it. A production version would write checkpoints to a separate
+> host or an actual append-only store (a WORM S3 bucket, or a public
+> transparency log) rather than co-located local disk.
+
 ### 5. Live security forensics
 The Trust Console renders the real event timeline for each decision (document received → content isolated → injection detected → grounding checked → decision → **audit entry committed**) alongside the reasoning, evidence, and the committed hash-chain entry. The existing tamper-evident audit log (`/api/log`, `/api/log/tamper`) backs it.
 

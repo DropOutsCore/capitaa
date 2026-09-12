@@ -8,6 +8,7 @@ npm-debug.log*
 .DS_Store
 .vite/
 coverage/
+backend/data/
 backend/.env
 **/.env
 !**/.env.example

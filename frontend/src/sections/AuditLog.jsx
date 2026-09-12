@@ -20,12 +20,17 @@ const EVENT_TONE = {
 export default function AuditLog() {
   const [entries, setEntries] = useState([]);
   const [integrity, setIntegrity] = useState(null);
+  const [truncation, setTruncation] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  async function load() {
-    const data = await api.getLog();
+  function apply(data) {
     setEntries(data.entries || []);
     setIntegrity(data.integrity || null);
+    setTruncation(data.truncation || null);
+  }
+
+  async function load() {
+    apply(await api.getLog());
   }
 
   // Ensure there's always something to show: seed if the log is empty.
@@ -33,14 +38,8 @@ export default function AuditLog() {
     (async () => {
       try {
         const data = await api.getLog();
-        if (!data.entries || data.entries.length === 0) {
-          const seeded = await api.seedLog();
-          setEntries(seeded.entries);
-          setIntegrity(seeded.integrity);
-        } else {
-          setEntries(data.entries);
-          setIntegrity(data.integrity);
-        }
+        if (!data.entries || data.entries.length === 0) apply(await api.seedLog());
+        else apply(data);
       } catch {
         /* backend offline */
       }
@@ -50,9 +49,8 @@ export default function AuditLog() {
   async function reseed() {
     setBusy(true);
     try {
-      const seeded = await api.seedLog();
-      setEntries(seeded.entries);
-      setIntegrity(seeded.integrity);
+      apply(await api.seedLog());
+      await load(); // refresh truncation check against the fresh checkpoint
     } finally {
       setBusy(false);
     }
@@ -70,7 +68,19 @@ export default function AuditLog() {
     }
   }
 
+  // Delete the last entry — the hash chain stays VALID, but the append-only
+  // checkpoint catches the missing entry.
+  async function truncate() {
+    setBusy(true);
+    try {
+      apply(await api.truncateLog());
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const brokenAt = integrity && !integrity.intact ? integrity.brokenAt : -1;
+  const truncated = truncation && truncation.status === 'TRUNCATION_DETECTED';
 
   return (
     <Section
@@ -85,26 +95,35 @@ export default function AuditLog() {
           <div className="flex items-center gap-3 text-sm">
             <span
               className={`h-2.5 w-2.5 rounded-full ${
-                integrity?.intact ? 'bg-signal-execute animate-pulseglow' : 'bg-signal-refuse'
+                integrity?.intact && !truncated ? 'bg-signal-execute animate-pulseglow' : 'bg-signal-refuse'
               }`}
             />
-            {integrity ? (
-              integrity.intact ? (
-                <span className="text-white/70">
-                  Chain intact · {entries.length} events · <span className="text-white/40">HMAC-SHA256</span>
-                </span>
-              ) : (
-                <span className="font-semibold text-signal-refuse">
-                  HASH CHAIN BROKEN at #{brokenAt} — LOG INTEGRITY FAILURE ({integrity.reason})
-                </span>
-              )
-            ) : (
+            {!integrity ? (
               <span className="text-white/40">Loading…</span>
+            ) : !integrity.intact ? (
+              <span className="font-semibold text-signal-refuse">
+                HASH CHAIN BROKEN at #{brokenAt} — LOG INTEGRITY FAILURE ({integrity.reason})
+              </span>
+            ) : truncated ? (
+              <span className="font-semibold text-signal-refuse">
+                ENTRY COUNT MISMATCH — {truncation.missing || 'tail'} {truncation.missing === 1 ? 'entry' : 'entries'} missing from checkpoint
+                <span className="ml-2 font-normal text-white/40">
+                  (chain still internally VALID — caught by the checkpoint)
+                </span>
+              </span>
+            ) : (
+              <span className="text-white/70">
+                Chain intact · {entries.length} events · checkpoint OK ·{' '}
+                <span className="text-white/40">HMAC-SHA256 + append-only checkpoint</span>
+              </span>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <GlassButton onClick={tamper} variant="ghost" disabled={busy}>
               Simulate tampering
+            </GlassButton>
+            <GlassButton onClick={truncate} variant="ghost" disabled={busy}>
+              Simulate truncation
             </GlassButton>
             <GlassButton onClick={reseed} variant="primary" disabled={busy}>
               Reset chain
@@ -171,9 +190,13 @@ export default function AuditLog() {
       </Reveal>
 
       <Reveal className="mt-6">
-        <p className="text-center text-xs text-white/40">
-          Each event's HMAC covers the previous event's HMAC, so a break cascades to every entry after it.
-          Tamper-evident, not tamper-proof — an attacker holding the HMAC key could recompute the chain.
+        <p className="mx-auto max-w-3xl text-center text-xs leading-relaxed text-white/40">
+          Each event's HMAC covers the previous event's HMAC, so edits/insertions cascade to every entry after them.
+          Deletion of the newest entry can't be seen by the chain alone (the survivors stay consistent), so it's caught
+          by cross-referencing an <span className="text-white/55">append-only external checkpoint</span> against the live
+          entry count. Tamper-evident, not tamper-proof: an attacker with write access to both the log and the
+          co-located checkpoint could still defeat it — a production build would push checkpoints to a separate host or
+          a WORM/transparency log.
         </p>
       </Reveal>
     </Section>

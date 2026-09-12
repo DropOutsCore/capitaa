@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { inc } from './metrics.js';
+import { writeCheckpoint, lastCheckpoint, resetCheckpoint } from './checkpoint.js';
 
 // ---------------------------------------------------------------------------
 // CAPITA Audit Log — an HMAC-SHA256 hash chain.
@@ -75,6 +76,9 @@ export function appendEvent({ event, actor, action, payload }) {
   };
   entry.hmac = computeHmac(entry);
   entries.push(entry);
+  // Also record an external, append-only checkpoint so truncation of the most
+  // recent entries is detectable even though the hash chain alone can't see it.
+  writeCheckpoint({ entryId: entry.eventId, count: entries.length, latestHmac: entry.hmac });
   return entry;
 }
 
@@ -109,6 +113,56 @@ export function verify() {
   return { intact: true, brokenAt: -1 };
 }
 
+// Cross-reference the live log against the append-only checkpoint file. This
+// catches TRUNCATION of the most recent entries — which verify() cannot, since
+// the surviving chain is still internally consistent. We compare the live entry
+// count + latest HMAC against what the checkpoint last recorded.
+export function verifyAgainstCheckpoint() {
+  const cp = lastCheckpoint();
+  if (!cp || cp.count == null) {
+    return { status: 'NO_CHECKPOINT', liveCount: entries.length };
+  }
+
+  const liveCount = entries.length;
+  const liveLatest = liveCount ? entries[liveCount - 1].hmac : '0'.repeat(64);
+
+  // Fewer live entries than the checkpoint last recorded → entries were deleted.
+  if (liveCount < cp.count) {
+    inc('log_integrity_violations_total');
+    return {
+      status: 'TRUNCATION_DETECTED',
+      expectedCount: cp.count,
+      liveCount,
+      missing: cp.count - liveCount,
+      expectedLatestHmac: cp.latestHmac,
+    };
+  }
+
+  // Same count but the latest HMAC doesn't match what the checkpoint expected →
+  // the tail was rewritten to hide a deletion+re-add. Also a mismatch.
+  if (liveCount === cp.count && cp.latestHmac && liveLatest !== cp.latestHmac) {
+    inc('log_integrity_violations_total');
+    return {
+      status: 'TRUNCATION_DETECTED',
+      expectedCount: cp.count,
+      liveCount,
+      missing: 0,
+      expectedLatestHmac: cp.latestHmac,
+      note: 'latest HMAC does not match checkpoint',
+    };
+  }
+
+  return { status: 'OK', expectedCount: cp.count, liveCount };
+}
+
+// Demo affordance: DELETE the last entry (truncation) without touching the
+// checkpoint file — exactly what an attacker with DB write access would do.
+// verify() will still report VALID; verifyAgainstCheckpoint() catches it.
+export function truncateLast(n = 1) {
+  const removed = entries.splice(Math.max(0, entries.length - n), n);
+  return { removed: removed.length, remaining: entries.length };
+}
+
 // Demo affordance: mutate a committed record in place WITHOUT recomputing its
 // HMAC — exactly what an attacker editing the store would do. This is the
 // PAYLOAD_TAMPERED demonstration: verify() then detects the break.
@@ -124,4 +178,8 @@ export function tamper(index, patch) {
 
 export function reset() {
   entries.length = 0;
+  // Start a fresh checkpoint file for a clean demo run. This is the only place
+  // the checkpoint is truncated (see checkpoint.js resetCheckpoint), and it is
+  // deliberately separate from the append-only write path.
+  resetCheckpoint();
 }

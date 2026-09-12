@@ -27,6 +27,7 @@ export const api = {
   getLog: () => request('/api/log'),
   tamperLog: (index, action) =>
     request('/api/log/tamper', { method: 'POST', body: JSON.stringify({ index, action }) }),
+  truncateLog: () => request('/api/log/truncate', { method: 'POST' }),
   seedLog: () => request('/api/log/seed', { method: 'POST' }),
   getMetrics: () => request('/metrics?format=json'),
   health: () => request('/healthz'),

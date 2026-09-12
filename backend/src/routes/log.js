@@ -1,13 +1,34 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { list, verify, tamper, appendEvent, reset } from '../auditLog.js';
+import { list, verify, verifyAgainstCheckpoint, tamper, truncateLast, appendEvent, reset } from '../auditLog.js';
 
 export const logRouter = Router();
 
 // GET /api/log -the full tamper-evident action log plus a live integrity check.
+// `integrity` is the hash-chain result (catches edits/insertions). `truncation`
+// cross-references the append-only checkpoint (catches deletion of the tail).
 logRouter.get('/', (req, res) => {
   const integrity = verify();
-  res.json({ entries: list(), integrity, algorithm: 'HMAC-SHA256 hash chain' });
+  const truncation = verifyAgainstCheckpoint();
+  res.json({
+    entries: list(),
+    integrity,
+    truncationCheck: truncation.status,
+    truncation,
+    algorithm: 'HMAC-SHA256 hash chain + append-only checkpoint',
+  });
+});
+
+// POST /api/log/truncate — demo-only. Delete the last entry WITHOUT touching the
+// checkpoint file. The hash chain still verifies VALID; the checkpoint catches it.
+logRouter.post('/truncate', (req, res) => {
+  const result = truncateLast(1);
+  res.json({
+    ...result,
+    integrity: verify(),
+    truncation: verifyAgainstCheckpoint(),
+    entries: list(),
+  });
 });
 
 // POST /api/log/seed — populate a realistic set of events so the Audit Log has

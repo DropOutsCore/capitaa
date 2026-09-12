@@ -44,9 +44,9 @@ export default function Navbar() {
         style={{ maxWidth: '80rem' }}
         className="flex items-center justify-between gap-6 rounded-2xl border border-white/10 px-4 shadow-glass md:px-6"
       >
-        <a href="#top" className="flex items-center gap-2.5">
+        <a href="#top" className="flex items-center gap-2.5" aria-label="Capita — home">
           <ShieldMark />
-          <span className="font-display text-lg font-semibold tracking-tight">Capita</span>
+          <CapitaWordmark />
         </a>
 
         <ul className="hidden items-center gap-7 text-sm text-white/60 lg:flex">
@@ -70,25 +70,57 @@ export default function Navbar() {
   );
 }
 
+// The "Capita" wordmark — matches the brand logo: a rounded sans in a soft
+// white→blue gradient, with the dot on the "i" in the blue accent. Rendered as
+// styled text so it's transparent and crisp at any size (the shield mark sits
+// to its left, added separately in the navbar).
+function CapitaWordmark() {
+  return (
+    <span className="flex select-none items-baseline font-display text-xl font-semibold leading-none tracking-tight md:text-[22px]">
+      <span
+        className="bg-clip-text text-transparent"
+        style={{ backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #cdddff 100%)' }}
+      >
+        Cap
+      </span>
+      {/* dotless i + accent dot */}
+      <span className="relative bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #cdddff 100%)' }}>
+        ı
+        <span className="absolute -top-[0.16em] left-1/2 h-[0.16em] w-[0.16em] -translate-x-1/2 rounded-full bg-accent" />
+      </span>
+      <span
+        className="bg-clip-text text-transparent"
+        style={{ backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #cdddff 100%)' }}
+      >
+        ta
+      </span>
+    </span>
+  );
+}
+
 function ShieldMark() {
   return (
-    <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden>
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden>
       <defs>
         <linearGradient id="navg" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#8fbaff" />
           <stop offset="1" stopColor="#3f6fe0" />
         </linearGradient>
       </defs>
+      {/* filled shield with a soft translucent body, gradient rim */}
       <path
-        d="M16 4l9 3.5v6.2c0 5.6-3.8 10.4-9 12.3-5.2-1.9-9-6.7-9-12.3V7.5L16 4z"
+        d="M16 3.5l10 3.6v6.6c0 6-4 11.2-10 13.2-6-2-10-7.2-10-13.2V7.1L16 3.5z"
+        fill="url(#navg)"
+        fillOpacity="0.16"
         stroke="url(#navg)"
         strokeWidth="2"
         strokeLinejoin="round"
       />
+      {/* bold checkmark */}
       <path
-        d="M11.5 16.2l3.2 3.2 6-6.6"
+        d="M11 16.3l3.4 3.5 6.6-7.1"
         stroke="url(#navg)"
-        strokeWidth="2.2"
+        strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

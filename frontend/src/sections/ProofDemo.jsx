@@ -35,7 +35,8 @@ export default function ProofDemo() {
         proof: proof.proof,
       });
       const url = `${window.location.origin}${res.verifyPath}`;
-      setShare({ proofId: res.proofId, url, qr: qrSvg(url, { size: 168 }), expiresAt: res.expiresAt });
+      const qr = await qrSvg(url, { size: 168 });
+      setShare({ proofId: res.proofId, url, qr, expiresAt: res.expiresAt });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -239,6 +240,12 @@ export default function ProofDemo() {
                               Scan or open the link — the verifier re-checks the proof and never sees the balance. Expires{' '}
                               {new Date(share.expiresAt).toLocaleString()}.
                             </div>
+                            {/localhost|127\.0\.0\.1/.test(share.url) && (
+                              <div className="mt-2 rounded-lg border border-signal-escalate/30 bg-signal-escalate/[0.08] px-2.5 py-1.5 text-[10px] text-signal-escalate">
+                                This link points to localhost, so a phone on another network can't open it. Open it in a new
+                                browser tab here, or deploy the app to get a publicly scannable link.
+                              </div>
+                            )}
                           </motion.div>
                         )}
                       </div>

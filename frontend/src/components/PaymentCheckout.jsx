@@ -12,7 +12,6 @@ export default function PaymentCheckout({ doc, onClose }) {
   const [phase, setPhase] = useState('loading'); // loading | checkout | processing | done | blocked | error
   const [checkout, setCheckout] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
-  const [outcome, setOutcome] = useState('success'); // demo outcome selector
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
@@ -43,7 +42,7 @@ export default function PaymentCheckout({ doc, onClose }) {
       const res = await api.paymentConfirm({
         checkoutId: checkout.checkoutId,
         confirmed: true,
-        simulate: outcome,
+        simulate: 'success',
       });
       setResult(res);
       setPhase('done');
@@ -106,24 +105,6 @@ export default function PaymentCheckout({ doc, onClose }) {
                 <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 accent-accent" />
                 I confirm this payment of ₹{Number(checkout.amount).toLocaleString('en-IN')} to {checkout.merchant}.
               </label>
-
-              {/* demo outcome selector */}
-              <div className="mt-4">
-                <div className="mb-1.5 text-[11px] uppercase tracking-[0.14em] text-white/40">Simulate outcome (demo)</div>
-                <div className="flex gap-2">
-                  {['success', 'failure', 'cancel'].map((o) => (
-                    <button
-                      key={o}
-                      onClick={() => setOutcome(o)}
-                      className={`flex-1 rounded-lg border px-2 py-1.5 text-xs capitalize transition-colors ${
-                        outcome === o ? 'border-accent/50 bg-accent/10 text-white' : 'border-white/10 text-white/50 hover:text-white'
-                      }`}
-                    >
-                      {o}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <GlassButton onClick={pay} variant="primary" className="mt-5 w-full" disabled={!confirmed}>
                 {confirmed ? `Pay ₹${Number(checkout.amount).toLocaleString('en-IN')}` : 'Confirm to enable payment'}

@@ -137,7 +137,7 @@ This is not a mockup — the site talks to a **real backend**, and every claim i
 
 ---
 
-## 🧰 Tech stack
+## Tech stack
 
 <table>
 <tr><th>Layer</th><th>Technology</th><th>Role</th></tr>

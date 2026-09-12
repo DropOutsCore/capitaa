@@ -71,7 +71,7 @@ Every document flows through the same guarded pipeline. The model sits *inside* 
 
 <div align="center">
 
-![CAPITA security pipeline](docs/pipeline.png)
+![CAPITA security pipeline](docs/pipeline.jpeg)
 
 </div>
 
@@ -93,7 +93,7 @@ Every document flows through the same guarded pipeline. The model sits *inside* 
 
 <div align="center">
 
-![CAPITA system architecture — from intent to action](docs/architecture.png)
+![CAPITA system architecture — from intent to action](docs/architecture.jpeg)
 
 </div>
 

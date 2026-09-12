@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ CAPITA
+#  CAPITA
 
 ### Deterministic AI Financial Security
 
@@ -27,7 +27,7 @@ CAPITA lets an AI assistant *read* untrusted financial documents and *suggest* a
 
 ---
 
-## 📖 Table of contents
+##  Table of contents
 
 - [The problem](#-the-problem)
 - [The idea in one line](#-the-idea-in-one-line)
@@ -45,7 +45,7 @@ CAPITA lets an AI assistant *read* untrusted financial documents and *suggest* a
 
 ---
 
-## 🎯 The problem
+## The problem
 
 AI assistants now **read untrusted content** — invoices, supplier emails, PDFs — and increasingly **act** on it. Attackers hide instructions inside that content:
 
@@ -57,7 +57,7 @@ A normal AI assistant reads that and does it. When money is on the other end, **
 
 ---
 
-## 💡 The idea in one line
+##  The idea in one line
 
 > **LLM → CAPITA → ALLOW → user confirmation → payment.  Never: LLM → payment.**
 
@@ -65,7 +65,7 @@ The language model is treated as an **untrusted proposer**. It may emit a *struc
 
 ---
 
-## ⚙️ How it works
+##  How it works
 
 Every document flows through the same guarded pipeline. The model sits *inside* the untrusted zone; nothing it proposes reaches money without passing every deterministic control below it.
 
@@ -77,19 +77,19 @@ Every document flows through the same guarded pipeline. The model sits *inside* 
 
 | Stage | What happens | Who's in charge |
 | --- | --- | --- |
-| 🌐 **Untrusted world** | Invoice / PDF / email / memo enters the system | — |
-| 📥 **Document ingestion** | Raw text stored + SHA‑256 hashed, never executed | deterministic |
-| 🛡️ **Trust boundary** | Content is tagged **data ≠ commands** | deterministic |
-| 🧠 **LLM engine** (Gemini) | Reads the doc, returns a **proposal** only | untrusted |
-| 📄 **Structured action proposal** | `{ action, amount, embedded_instructions, … }` | untrusted input |
-| 🔒 **CAPITA security layer** | Schema policy · grounding · authorization · replay · confirmation · injection detection | **deterministic** |
-| 🔀 **Decision engine** | **ALLOW / BLOCK / ESCALATE** | **deterministic** |
-| 💳 **Financial engine** | Executes only a *validated* action (mock gateway) | deterministic |
-| 🧾 **Tamper‑evident audit log** | HMAC hash‑chained record of everything | deterministic |
+|  **Untrusted world** | Invoice / PDF / email / memo enters the system | — |
+|  **Document ingestion** | Raw text stored + SHA‑256 hashed, never executed | deterministic |
+|  **Trust boundary** | Content is tagged **data ≠ commands** | deterministic |
+|  **LLM engine** (Gemini) | Reads the doc, returns a **proposal** only | untrusted |
+|  **Structured action proposal** | `{ action, amount, embedded_instructions, … }` | untrusted input |
+| **CAPITA security layer** | Schema policy · grounding · authorization · replay · confirmation · injection detection | **deterministic** |
+|  **Decision engine** | **ALLOW / BLOCK / ESCALATE** | **deterministic** |
+|  **Financial engine** | Executes only a *validated* action (mock gateway) | deterministic |
+|  **Tamper‑evident audit log** | HMAC hash‑chained record of everything | deterministic |
 
 ---
 
-## 🏗️ System architecture
+##  System architecture
 
 <div align="center">
 
@@ -101,7 +101,7 @@ The **AI engine** says *"I propose X."* The **CAPITA control plane** evaluates i
 
 <div align="center">
 
-| ✅ ALLOW | ⛔ BLOCK | ⚠️ ESCALATE |
+|  ALLOW |  BLOCK |  ESCALATE |
 | :---: | :---: | :---: |
 | Execute | Reject | Human review |
 | grounded, in‑policy, confirmed | injection / ungrounded / unauthorized | high‑value / ambiguous / missing 2FA |
@@ -112,28 +112,28 @@ The **AI engine** says *"I propose X."* The **CAPITA control plane** evaluates i
 
 ---
 
-## 👥 Who it's for
+##  Who it's for
 
 | Audience | Why they care |
 | --- | --- |
-| 🏦 **Banks & fintechs** | Automate invoice/payment workflows with AI *without* handing the model authority over funds. |
-| 🧾 **Enterprise finance / AP teams** | Catch invoice fraud, beneficiary‑swap emails, and prompt injection before a payment is ever made. |
-| 🔐 **Security & compliance** | A tamper‑evident audit trail, explicit refusal forensics, and reproducible attack testing. |
-| 🌍 **Regional / multilingual users** | Security reports rendered in the user's own language, with the decision unchanged. |
-| 🧑‍⚖️ **Auditors & regulators** | Every action is hash‑chained and independently verifiable; ZK proofs let claims be checked without exposing private balances. |
+|  **Banks & fintechs** | Automate invoice/payment workflows with AI *without* handing the model authority over funds. |
+|  **Enterprise finance / AP teams** | Catch invoice fraud, beneficiary‑swap emails, and prompt injection before a payment is ever made. |
+|  **Security & compliance** | A tamper‑evident audit trail, explicit refusal forensics, and reproducible attack testing. |
+|  **Regional / multilingual users** | Security reports rendered in the user's own language, with the decision unchanged. |
+|  **Auditors & regulators** | Every action is hash‑chained and independently verifiable; ZK proofs let claims be checked without exposing private balances. |
 
 ---
 
-## 🤝 Why it's trustworthy
+##  Why it's trustworthy
 
 This is not a mockup — the site talks to a **real backend**, and every claim is designed to be **checked**, not taken on faith.
 
-- **🧠 The model has no authority.** It only proposes; deterministic code decides. Watch it in the Trust Console: the model proposes `wire_transfer` on an injected invoice, and policy still **REFUSES**.
-- **📊 Real, reproducible metrics.** `npm run bench` runs the real engine over a labelled dataset + the full attack suite and writes `bench/results.json` — the site reads the *same* file. Current measured output: **100% injection detection, 0% false positives, 100% grounding accuracy, 100% attack block rate,** proof soundness holds.
-- **🔗 Tamper‑evident by construction.** The audit log is an **HMAC‑SHA256 hash chain**; edit any entry and the chain visibly breaks. Delete the last entry and an **append‑only checkpoint** catches the truncation the chain alone can't see.
-- **🔬 Real cryptography.** The privacy demo is a genuine zero‑knowledge range proof (Pedersen commitments + Chaum‑Pedersen OR‑proofs), self‑tested with `npm run test:proof`.
-- **🕵️ Honest about failures.** The Attack Lab shows a result of `ALLOWED` in red if anything ever got through — nothing is hidden. We explicitly declare our accepted weaknesses (see below).
-- **💳 Payments can't be model‑triggered.** The payment endpoints **re‑run the decision engine server‑side**; a REFUSE document hitting `/checkout` directly is rejected with `403`.
+- ** The model has no authority.** It only proposes; deterministic code decides. Watch it in the Trust Console: the model proposes `wire_transfer` on an injected invoice, and policy still **REFUSES**.
+- ** Real, reproducible metrics.** `npm run bench` runs the real engine over a labelled dataset + the full attack suite and writes `bench/results.json` — the site reads the *same* file. Current measured output: **100% injection detection, 0% false positives, 100% grounding accuracy, 100% attack block rate,** proof soundness holds.
+- ** Tamper‑evident by construction.** The audit log is an **HMAC‑SHA256 hash chain**; edit any entry and the chain visibly breaks. Delete the last entry and an **append‑only checkpoint** catches the truncation the chain alone can't see.
+- ** Real cryptography.** The privacy demo is a genuine zero‑knowledge range proof (Pedersen commitments + Chaum‑Pedersen OR‑proofs), self‑tested with `npm run test:proof`.
+- **Honest about failures.** The Attack Lab shows a result of `ALLOWED` in red if anything ever got through — nothing is hidden. We explicitly declare our accepted weaknesses (see below).
+- ** Payments can't be model‑triggered.** The payment endpoints **re‑run the decision engine server‑side**; a REFUSE document hitting `/checkout` directly is rejected with `403`.
 
 ---
 
@@ -159,7 +159,7 @@ This is not a mockup — the site talks to a **real backend**, and every claim i
 
 ---
 
-## 🚀 Quick start (3 commands)
+##  Quick start (3 commands)
 
 ```bash
 git clone https://github.com/DropOutsCore/capitaa.git capita && cd capita   # 1. clone
@@ -169,14 +169,14 @@ npm run dev                                                                  # 3
 
 | Service | URL |
 | --- | --- |
-| 🌐 **Web app** | http://localhost:5173 |
-| 🔌 **API** | http://localhost:4000 |
+|  **Web app** | http://localhost:5173 |
+|  **API** | http://localhost:4000 |
 
 `npm run setup` installs the root tooling plus `backend/` and `frontend/`. `npm run dev` starts the Express API and the Vite dev server together (via `concurrently`); Vite proxies `/api`, `/healthz`, and `/metrics` to the API — no CORS setup needed.
 
-**🔮 Enable the real LLM (optional):** copy `backend/.env.example` → `backend/.env` and add `GEMINI_API_KEY` / `ANTHROPIC_API_KEY`. With no keys, CAPITA uses the local heuristic proposer and still works — the decision layer never depends on the LLM. `backend/.env` is gitignored.
+** Enable the real LLM (optional):** copy `backend/.env.example` → `backend/.env` and add `GEMINI_API_KEY` / `ANTHROPIC_API_KEY`. With no keys, CAPITA uses the local heuristic proposer and still works — the decision layer never depends on the LLM. `backend/.env` is gitignored.
 
-**🌱 Seed demo data (optional):**
+** Seed demo data (optional):**
 
 ```bash
 npm run seed          # populates a mix of execute / refuse / escalate + live metrics
@@ -184,31 +184,31 @@ npm run seed          # populates a mix of execute / refuse / escalate + live me
 
 ---
 
-## ✨ Feature tour
+##  Feature tour
 
 Walk the page top to bottom — each section is backed by the real API.
 
-### 🧪 Live Trust Console *(centerpiece)*
+###  Live Trust Console *(centerpiece)*
 Upload or paste a document → watch policy decide. Shows the model's **proposal**, the **decision**, the **reasoning** (`SRC / INJ / GRD / LMT / CFM`), an expandable **evidence inspector** (source · page · field · char offset · document hash), a **live forensics timeline**, and the committed **audit HMAC**. On ALLOW, a **Proceed to payment** button appears.
 
-### 🎯 The Needle Attack Lab
+###  The Needle Attack Lab
 **23 reproducible attacks** (15 team‑authored) across 12 categories — injection, invisible/zero‑width text, PDF metadata, homoglyphs, multilingual, replay, proof reuse/malleability, log tampering/truncation, recovery social‑engineering, proof‑cost DoS. Each runs live and shows **Attack → Payload → Detection → Decision → Defense layer → Result**.
 
-### 🔏 Verifiable Privacy (zero‑knowledge)
+###  Verifiable Privacy (zero‑knowledge)
 Prove **"balance ≥ ₹1,00,000" without revealing the balance**. Real Pedersen commitments + a bit‑decomposition range proof; latency is **measured, not mocked**. **Share proof** produces a link + scannable QR to a public `/verify` page that independently re‑verifies — the balance is never in the API, URL, QR, logs, or frontend state.
 
-### 🧾 Tamper‑evident Audit Log
+###  Tamper‑evident Audit Log
 An **HMAC‑SHA256 hash chain**. **Simulate tampering** breaks the chain from that point; **Simulate truncation** deletes the last entry (chain still "valid") and the **append‑only checkpoint** catches the entry‑count mismatch.
 
-### 💳 Secure Payment Handoff
+###  Secure Payment Handoff
 After ALLOW → secure checkout (verified merchant, amount, invoice ID) → explicit confirmation → **mock** payment → transaction ID + receipt + audit entry. **No real money moves**, and the gateway only ever receives a server‑validated action.
 
-### 🌍 Multilingual Security Reports
+###  Multilingual Security Reports
 Generate a human‑readable report in English, Hindi, Tamil, Bengali, Marathi, French, or Spanish. The **LLM only translates** — the decision/status are computed deterministically and are byte‑identical across languages. Export to PDF.
 
 ---
 
-## 🔌 API reference
+##  API reference
 
 Base URL: `http://localhost:4000` (proxied at `/api` from the web app).
 
@@ -243,7 +243,7 @@ Base URL: `http://localhost:4000` (proxied at `/api` from the web app).
 
 ---
 
-## ✅ Verify it yourself
+##  Verify it yourself
 
 ```bash
 cd backend
@@ -266,21 +266,21 @@ curl -s -X POST http://localhost:4000/api/documents -H "content-type: applicatio
 
 ---
 
-## ⚖️ Honest limitations
+##  Honest limitations
 
 We deliberately **do not claim perfect security.** Declared, not hidden:
 
-- 🔐 **ZK parameters** are 1024‑bit MODP, chosen for interactive latency — a real demonstration, not a production parameter set.
-- 🔗 **Audit log** is tamper‑*evident*, not tamper‑*proof*; the truncation checkpoint can be defeated by an attacker with write access to *both* stores on the same host. Production would use an off‑host / WORM / transparency‑log checkpoint.
-- 🧠 **Claude secondary** is wired but the specific demo token doesn't authenticate against the public endpoint, so it fails over to the local proposer. The failover behavior is the point, and it works.
-- 💳 **Payments** are simulated via a mock gateway; no real funds move.
-- 💾 **State** (audit log, shared proofs, checkouts) is in‑memory for the demo and doesn't persist across restarts.
+-  **ZK parameters** are 1024‑bit MODP, chosen for interactive latency — a real demonstration, not a production parameter set.
+-  **Audit log** is tamper‑*evident*, not tamper‑*proof*; the truncation checkpoint can be defeated by an attacker with write access to *both* stores on the same host. Production would use an off‑host / WORM / transparency‑log checkpoint.
+- **Claude secondary** is wired but the specific demo token doesn't authenticate against the public endpoint, so it fails over to the local proposer. The failover behavior is the point, and it works.
+-  **Payments** are simulated via a mock gateway; no real funds move.
+-  **State** (audit log, shared proofs, checkouts) is in‑memory for the demo and doesn't persist across restarts.
 
 > The claim is narrow and true: the blast radius of a compromised or prompt‑injected model is **bounded** by deterministic controls it cannot override.
 
 ---
 
-## 📁 Project structure
+##  Project structure
 
 ```
 capita/

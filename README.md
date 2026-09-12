@@ -169,6 +169,16 @@ The tamper-evident audit log is an **HMAC-SHA256 hash chain** (`backend/src/audi
 > host or an actual append-only store (a WORM S3 bucket, or a public
 > transparency log) rather than co-located local disk.
 
+### Secure payment handoff (mock gateway)
+When — and only when — CAPITA returns **ALLOW/execute**, the Trust Console shows a **Proceed to payment** button leading to a secure checkout (verified merchant, amount, invoice ID, summary), explicit user confirmation, and a simulated charge with **success / failure / cancelled** states, a transaction ID, and a tamper-evident audit entry.
+
+**Security boundary:** `LLM → CAPITA → ALLOW → user confirmation → gateway`. Never `LLM → gateway`. The payment endpoints don't trust a client claim that "this was allowed" — `POST /api/payment/checkout` and `/api/payment/confirm` **re-run the deterministic decision engine** on the submitted document and only invoke the gateway if it independently returns `execute` (verified: a REFUSE document hitting `/checkout` directly is rejected with `403`). Confirmation is mandatory (missing confirm → `400`).
+
+- Mock gateway (`backend/src/gateway/index.js`) moves no real money; it implements a `PaymentProvider` interface so a real PSP can replace it by swapping one line — the CAPITA security layer is untouched.
+- Audit events: `PAYMENT_INITIATED`, `PAYMENT_SUCCESS`, `PAYMENT_FAILED`, `PAYMENT_CANCELLED`, `PAYMENT_BLOCKED`. New metrics: `payments_succeeded_total`, `payments_failed_total`, `payments_blocked_total`.
+
+Workflow: Invoice → Extract → CAPITA security checks → ALLOW → checkout → user confirmation → simulated payment → receipt + audit log.
+
 ### Multilingual security reports
 After a document is analyzed, CAPITA can produce a human-readable security report in the user's language — English, Hindi, Tamil, Bengali, Marathi, French, or Spanish. The report includes: document summary, security status, threat explanation, the CAPITA decision (Allow/Block/Escalate) with reason, recommendations, and audit metadata (report ID, timestamp, audit HMAC, trust level).
 

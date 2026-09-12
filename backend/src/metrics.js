@@ -13,6 +13,9 @@ const counters = {
   proofs_generated_total: 0,
   proofs_verified_total: 0,
   provider_failovers_total: 0,
+  payments_succeeded_total: 0,
+  payments_failed_total: 0,
+  payments_blocked_total: 0,
 };
 
 const startedAt = Date.now();

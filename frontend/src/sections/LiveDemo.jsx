@@ -7,6 +7,7 @@ import DecisionBadge from '../components/DecisionBadge.jsx';
 import { api } from '../lib/api.js';
 import { EASE } from '../lib/motion.js';
 import SecurityReport from '../components/SecurityReport.jsx';
+import PaymentCheckout from '../components/PaymentCheckout.jsx';
 
 const PRESETS = [
   {
@@ -61,6 +62,7 @@ export default function LiveDemo() {
   const [metrics, setMetrics] = useState(null);
   const [health, setHealth] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   function inferType(name) {
@@ -406,6 +408,24 @@ export default function LiveDemo() {
                     </div>
                   )}
 
+                  {/* Payment handoff — ONLY when CAPITA returns ALLOW/execute.
+                      The server re-validates on checkout/confirm, so this button
+                      is a convenience gate, not the security boundary. */}
+                  {result.decision === 'execute' && (
+                    <div className="mt-5 rounded-2xl border border-signal-execute/25 bg-signal-execute/[0.05] p-4">
+                      <div className="mb-2 text-xs uppercase tracking-[0.16em] text-signal-execute/80">
+                        Authorized — payment enabled
+                      </div>
+                      <p className="mb-3 text-[13px] text-white/60">
+                        CAPITA validated this action. You can now proceed to a secure checkout. The
+                        gateway only ever receives the validated action — never the document or model output.
+                      </p>
+                      <GlassButton onClick={() => setPayOpen(true)} variant="primary" className="w-full">
+                        Proceed to payment →
+                      </GlassButton>
+                    </div>
+                  )}
+
                   {/* Multilingual security report — LLM translates, decision unchanged */}
                   <SecurityReport doc={doc} />
                 </motion.div>
@@ -414,6 +434,12 @@ export default function LiveDemo() {
           </div>
         </Reveal>
       </div>
+
+      <AnimatePresence>
+        {payOpen && result?.decision === 'execute' && (
+          <PaymentCheckout doc={doc} onClose={() => setPayOpen(false)} />
+        )}
+      </AnimatePresence>
     </Section>
   );
 }

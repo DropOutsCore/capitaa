@@ -18,6 +18,7 @@ import { attacksRouter } from './routes/attacks.js';
 import { modelsRouter } from './routes/models.js';
 import { benchRouter } from './routes/bench.js';
 import { reportRouter } from './routes/report.js';
+import { paymentRouter } from './routes/payment.js';
 
 export function createApp() {
   const app = express();
@@ -54,6 +55,7 @@ export function createApp() {
   app.use('/api/models', modelsRouter);
   app.use('/api/bench', benchRouter);
   app.use('/api/report', reportRouter);
+  app.use('/api/payment', paymentRouter);
 
   // Liveness/readiness. Reports audit-chain integrity as part of health.
   app.get('/healthz', (req, res) => {

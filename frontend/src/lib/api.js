@@ -55,4 +55,9 @@ export const api = {
     request('/api/proof/share', { method: 'POST', body: JSON.stringify(payload) }),
   getSharedProof: (id) => request(`/api/proof/shared/${id}`),
   verifySharedProof: (id) => request(`/api/proof/verify-shared/${id}`, { method: 'POST' }),
+
+  paymentCheckout: (payload) =>
+    request('/api/payment/checkout', { method: 'POST', body: JSON.stringify(payload) }),
+  paymentConfirm: (payload) =>
+    request('/api/payment/confirm', { method: 'POST', body: JSON.stringify(payload) }),
 };

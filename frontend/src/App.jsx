@@ -7,7 +7,6 @@ import HowItWorks from './sections/HowItWorks.jsx';
 import LiveDemo from './sections/LiveDemo.jsx';
 import AttackLab from './sections/AttackLab.jsx';
 import ProofDemo from './sections/ProofDemo.jsx';
-import ModelRouting from './sections/ModelRouting.jsx';
 import AuditLog from './sections/AuditLog.jsx';
 import Security from './sections/Security.jsx';
 import Footer from './sections/Footer.jsx';
@@ -31,7 +30,6 @@ export default function App() {
         <LiveDemo />
         <AttackLab />
         <ProofDemo />
-        <ModelRouting />
         <AuditLog />
         <Security />
       </main>

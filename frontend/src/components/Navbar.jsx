@@ -8,7 +8,6 @@ const LINKS = [
   { href: '#demo', label: 'Trust Console' },
   { href: '#attack-lab', label: 'Attack Lab' },
   { href: '#proof', label: 'Privacy' },
-  { href: '#failover', label: 'Failover' },
   { href: '#audit', label: 'Audit Log' },
   { href: '#security', label: 'Security' },
 ];

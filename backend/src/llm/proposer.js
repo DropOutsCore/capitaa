@@ -217,3 +217,78 @@ export async function propose(text, type) {
     errors,
   };
 }
+
+// ---------------------------------------------------------------------------
+// TRANSLATION HELPER (used by the multilingual report generator).
+//
+// CRITICAL: the LLM here only TRANSLATES and FORMATS text that was already
+// produced by the deterministic security engine. It is given the finished
+// English strings and asked to render them in the target language. It cannot
+// change the decision or status — those are separate structured fields the
+// report service passes through verbatim and never sends here for "judgement".
+// ---------------------------------------------------------------------------
+async function geminiTranslate(fields, language) {
+  if (!GEMINI_KEY) throw new Error('no gemini key');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+  const sys = `You are a professional translator for financial security reports.
+Translate the VALUES of the given JSON into ${language}. Rules:
+- Keep the JSON keys exactly as given (in English).
+- Do NOT translate or alter these tokens if they appear: UNTRUSTED DATA, EXECUTE, REFUSE, ESCALATE, and any hex hashes, IDs, currency figures, or file names.
+- Do not add, remove, or change the meaning of any field. Only translate the human-readable prose.
+Return ONLY the translated JSON object.`;
+  const body = {
+    systemInstruction: { parts: [{ text: sys }] },
+    contents: [{ role: 'user', parts: [{ text: JSON.stringify(fields) }] }],
+    generationConfig: { responseMimeType: 'application/json', temperature: 0, thinkingConfig: { thinkingBudget: 0 } },
+  };
+
+  const backoffs = [0, 700];
+  let lastErr;
+  for (let attempt = 0; attempt < backoffs.length; attempt++) {
+    if (backoffs[attempt]) await sleep(backoffs[attempt]);
+    try {
+      const res = await withTimeout(
+        fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
+        TIMEOUT_MS,
+        'gemini-translate'
+      );
+      if (res.status === 429 || res.status === 503) {
+        lastErr = new Error(`gemini HTTP ${res.status} (transient)`);
+        continue;
+      }
+      if (!res.ok) throw new Error(`gemini HTTP ${res.status}`);
+      const data = await res.json();
+      const out = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
+      const parsed = safeParseJson(out);
+      if (!parsed) throw new Error('gemini translate unparseable');
+      return parsed;
+    } catch (e) {
+      lastErr = e;
+      if (!/timeout|transient/.test(e.message)) throw e;
+    }
+  }
+  throw lastErr || new Error('gemini translate failed');
+}
+
+// Translate a set of report fields into the target language. Returns
+// { fields, engine } where engine is the model used or 'none' if English /
+// fallback. English is returned verbatim (no LLM call).
+export async function translateReport(fields, languageName, languageCode) {
+  if (!languageCode || languageCode === 'en') {
+    return { fields, engine: 'source (English)' };
+  }
+  // Respect the failover state: if the primary provider is knocked down (via
+  // simulate-failure), use the deterministic fallback so degradation is
+  // demonstrable — and the security outcome is unchanged either way.
+  if (isTierDown('primary')) {
+    return { fields: null, engine: 'fallback', error: 'primary provider down (simulated failure)' };
+  }
+  try {
+    const translated = await geminiTranslate(fields, languageName);
+    // Merge: keep any field the model dropped, from the original.
+    return { fields: { ...fields, ...translated }, engine: `Gemini (${GEMINI_MODEL})` };
+  } catch (e) {
+    logger.warn({ err: e.message, language: languageCode }, 'LLM translation failed; using deterministic fallback');
+    return { fields: null, engine: 'fallback', error: e.message };
+  }
+}

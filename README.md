@@ -163,6 +163,16 @@ The tamper-evident audit log is an **HMAC-SHA256 hash chain** (`backend/src/audi
 > host or an actual append-only store (a WORM S3 bucket, or a public
 > transparency log) rather than co-located local disk.
 
+### Multilingual security reports
+After a document is analyzed, CAPITA can produce a human-readable security report in the user's language — English, Hindi, Tamil, Bengali, Marathi, French, or Spanish. The report includes: document summary, security status, threat explanation, the CAPITA decision (Allow/Block/Escalate) with reason, recommendations, and audit metadata (report ID, timestamp, audit HMAC, trust level).
+
+**The LLM only translates and formats the report — it does not decide the security outcome.** The decision/status are computed by the deterministic engine and passed through verbatim, so the outcome is byte-identical across every language (verified: EN and HI both return `REFUSE` for the same document). If the LLM is unreachable, a deterministic per-language fallback renders the report (localized labels + status), so a report is always produced.
+
+- `GET /api/report/languages`, `POST /api/report` `{ type, text, filename?, requestedAmount?, confirmed?, language }`
+- In the Trust Console: pick a language, **Generate report**, and **Download PDF** (print-styled export). Each generation is recorded as a `REPORT_GENERATED` audit event.
+
+One-line pitch: *CAPITA converts complex cybersecurity decisions into multilingual, easy-to-understand reports without changing the underlying verified security outcome.*
+
 ### 5. Live security forensics
 The Trust Console renders the real event timeline for each decision (document received → content isolated → injection detected → grounding checked → decision → **audit entry committed**) alongside the reasoning, evidence, and the committed hash-chain entry. The existing tamper-evident audit log (`/api/log`, `/api/log/tamper`) backs it.
 

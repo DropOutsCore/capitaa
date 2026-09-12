@@ -46,4 +46,8 @@ export const api = {
   resetModels: () => request('/api/models/reset', { method: 'POST' }),
 
   getBench: () => request('/api/bench'),
+
+  reportLanguages: () => request('/api/report/languages'),
+  generateReport: (payload) =>
+    request('/api/report', { method: 'POST', body: JSON.stringify(payload) }),
 };

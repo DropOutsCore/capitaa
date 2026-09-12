@@ -6,6 +6,7 @@ import GlassButton from '../components/GlassButton.jsx';
 import DecisionBadge from '../components/DecisionBadge.jsx';
 import { api } from '../lib/api.js';
 import { EASE } from '../lib/motion.js';
+import SecurityReport from '../components/SecurityReport.jsx';
 
 const PRESETS = [
   {
@@ -404,6 +405,9 @@ export default function LiveDemo() {
                       {result.modelUsed && <span className="text-white/40">proposer: {result.modelUsed}</span>}
                     </div>
                   )}
+
+                  {/* Multilingual security report — LLM translates, decision unchanged */}
+                  <SecurityReport doc={doc} />
                 </motion.div>
               )}
             </AnimatePresence>

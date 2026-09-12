@@ -1,6 +1,12 @@
-// Thin client for the real Capita backend. In dev, Vite proxies these paths
-// to the Express server; in prod set VITE_API_BASE to the API origin.
-const BASE = import.meta.env.VITE_API_BASE || '';
+// Thin client for the real Capita backend.
+// - In dev, VITE_API_BASE is empty and Vite proxies /api, /healthz, /metrics
+//   to the Express server (see vite.config.js).
+// - In production (e.g. Render/Vercel static hosting) there is no proxy, so set
+//   VITE_API_BASE to the deployed API origin, e.g.
+//     VITE_API_BASE=https://capitaa-backend.onrender.com
+//   Vite inlines this at BUILD time, so change it and rebuild the frontend.
+// A trailing slash is trimmed so `${BASE}/api/...` never doubles up.
+const BASE = (import.meta.env.VITE_API_BASE || '').replace(/\/+$/, '');
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {

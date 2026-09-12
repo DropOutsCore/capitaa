@@ -28,8 +28,20 @@
     --text-muted: rgba(255, 255, 255, 0.6);
   }
 
-  html {
-    scroll-behavior: smooth;
+  /* Smooth scrolling is handled by Lenis in JS; CSS smooth would conflict.
+     Only re-enabled for reduced-motion users (who get no Lenis). */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
   }
 
   body {

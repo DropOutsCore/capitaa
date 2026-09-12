@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import Navbar from './components/Navbar.jsx';
 import ParallaxBackground from './components/ParallaxBackground.jsx';
+import { useLenis } from './lib/useLenis.js';
 import Hero from './sections/Hero.jsx';
 import Problem from './sections/Problem.jsx';
 import HowItWorks from './sections/HowItWorks.jsx';
@@ -15,6 +16,9 @@ import Footer from './sections/Footer.jsx';
 const ParallaxField3D = lazy(() => import('./components/ParallaxField3D.jsx'));
 
 export default function App() {
+  // Buttery smooth scrolling via Lenis (rAF-driven, runs at the display rate).
+  useLenis();
+
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       <ParallaxBackground />

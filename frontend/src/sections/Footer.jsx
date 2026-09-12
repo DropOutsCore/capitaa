@@ -8,7 +8,7 @@ const REPO = 'https://github.com/DropOutsCore/capitaa';
 export default function Footer() {
   const [doc, setDoc] = useState(null); // 'security' | 'compliance' | 'terms'
   return (
-    <footer className="relative border-t border-white/8 px-6 pb-12 pt-20">
+    <footer className="relative overflow-hidden border-t border-white/8 px-6 pb-12 pt-20">
       <div className="mx-auto max-w-7xl">
         {/* CTA band */}
         <Reveal>
@@ -57,8 +57,25 @@ export default function Footer() {
           </div>
         </Reveal>
 
+        {/* Giant edge-to-edge wordmark — the closing signature (full-bleed) */}
+        <Reveal className="mt-16 overflow-hidden">
+          <div
+            aria-hidden
+            className="select-none whitespace-nowrap text-center font-display font-semibold tracking-tightest text-transparent bg-clip-text"
+            style={{
+              fontSize: 'clamp(4.5rem, 26vw, 26rem)',
+              lineHeight: 1.15,
+              paddingBottom: '0.08em',
+              backgroundImage: 'linear-gradient(180deg, #8fbaff 0%, #5b8def 45%, #3f6fe0 100%)',
+              filter: 'drop-shadow(0 8px 60px rgba(110,168,255,0.28))',
+            }}
+          >
+            Capita
+          </div>
+        </Reveal>
+
         {/* Footer meta */}
-        <div className="mt-14 flex flex-col items-center justify-between gap-6 text-sm text-white/45 md:flex-row">
+        <div className="mt-8 flex flex-col items-center justify-between gap-6 text-sm text-white/45 md:flex-row">
           <div className="flex items-center gap-2.5">
             <span className="font-display text-base font-semibold text-white/80">Capita</span>
             <span className="text-white/30">· deterministic AI financial security</span>

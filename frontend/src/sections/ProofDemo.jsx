@@ -5,6 +5,7 @@ import Reveal from '../components/Reveal.jsx';
 import GlassButton from '../components/GlassButton.jsx';
 import { api } from '../lib/api.js';
 import { EASE } from '../lib/motion.js';
+import { qrSvg } from '../lib/qr.js';
 
 // Demonstrates proving "balance >= threshold" without revealing the balance,
 // using the real Pedersen + range-proof backend. The private value never
@@ -14,14 +15,51 @@ export default function ProofDemo() {
   const [threshold, setThreshold] = useState(100000);
   const [proof, setProof] = useState(null);
   const [verifyResult, setVerifyResult] = useState(null);
-  const [busy, setBusy] = useState(null); // 'gen' | 'verify'
+  const [busy, setBusy] = useState(null); // 'gen' | 'verify' | 'share'
   const [error, setError] = useState(null);
+  const [share, setShare] = useState(null); // { proofId, url, qr, expiresAt }
+  const [copied, setCopied] = useState(false);
+
+  // Publish ONLY the public artifact (claim + commitment + proof). The private
+  // balance is never part of `proof`, so it cannot leak into the link or QR.
+  async function shareProof() {
+    if (!proof || !verifyResult?.valid) return;
+    setBusy('share');
+    setError(null);
+    try {
+      const res = await api.shareProof({
+        claim: `Balance ≥ ₹${Number(threshold).toLocaleString('en-IN')}`,
+        commitment: proof.commitment,
+        threshold: proof.threshold,
+        nBits: proof.nBits,
+        proof: proof.proof,
+      });
+      const url = `${window.location.origin}${res.verifyPath}`;
+      setShare({ proofId: res.proofId, url, qr: qrSvg(url, { size: 168 }), expiresAt: res.expiresAt });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function copyLink() {
+    if (!share) return;
+    try {
+      await navigator.clipboard.writeText(share.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
 
   async function generate() {
     setBusy('gen');
     setError(null);
     setVerifyResult(null);
     setProof(null);
+    setShare(null);
     try {
       const p = await api.generateProof(Number(balance), Number(threshold));
       setProof(p);
@@ -162,6 +200,49 @@ export default function ProofDemo() {
                         : 'Proof did not check out.'}
                     </div>
                     <div className="mt-2 text-[11px] text-white/40">verified in {verifyResult.verificationMs} ms</div>
+
+                    {verifyResult.valid && (
+                      <div className="mt-4">
+                        {!share ? (
+                          <GlassButton onClick={shareProof} variant="ghost" className="w-full text-[13px]" disabled={busy === 'share'}>
+                            {busy === 'share' ? 'Creating link…' : 'Share proof'}
+                          </GlassButton>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, ease: EASE }}
+                            className="rounded-xl border border-white/10 bg-ink-950/50 p-3 text-left"
+                          >
+                            <div className="mb-2 text-[11px] uppercase tracking-[0.14em] text-white/40">
+                              Shareable verification
+                            </div>
+                            <div
+                              className="mx-auto mb-3 w-fit overflow-hidden rounded-lg bg-white p-1.5"
+                              dangerouslySetInnerHTML={{ __html: share.qr }}
+                            />
+                            <div className="flex items-center gap-2">
+                              <input
+                                readOnly
+                                value={share.url}
+                                onFocus={(e) => e.target.select()}
+                                className="min-w-0 flex-1 truncate rounded-lg border border-white/10 bg-ink-950/60 px-2.5 py-1.5 font-mono text-[11px] text-white/70 outline-none"
+                              />
+                              <button
+                                onClick={copyLink}
+                                className="flex-none rounded-lg border border-white/12 bg-white/[0.04] px-3 py-1.5 text-xs text-white/70 transition-colors hover:text-white"
+                              >
+                                {copied ? 'Copied' : 'Copy'}
+                              </button>
+                            </div>
+                            <div className="mt-2 text-[10px] text-white/35">
+                              Scan or open the link — the verifier re-checks the proof and never sees the balance. Expires{' '}
+                              {new Date(share.expiresAt).toLocaleString()}.
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
                 ) : (
                   <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid h-36 place-items-center text-center text-sm text-white/40">

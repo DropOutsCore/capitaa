@@ -50,4 +50,9 @@ export const api = {
   reportLanguages: () => request('/api/report/languages'),
   generateReport: (payload) =>
     request('/api/report', { method: 'POST', body: JSON.stringify(payload) }),
+
+  shareProof: (payload) =>
+    request('/api/proof/share', { method: 'POST', body: JSON.stringify(payload) }),
+  getSharedProof: (id) => request(`/api/proof/shared/${id}`),
+  verifySharedProof: (id) => request(`/api/proof/verify-shared/${id}`, { method: 'POST' }),
 };

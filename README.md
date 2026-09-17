@@ -307,6 +307,8 @@ capita/
 
 <div align="center">
 
+Crafted with love from DropOuts!
+
 <br/>
 
 **CAPITA** — *the model proposes; deterministic policy decides.*
